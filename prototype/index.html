@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ΑΚΟΥ — прототип</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B2739;
+  --ink-2:#071A28;
+  --shell:#F2EEE2;
+  --sea:#3AA7C4;
+  --sun:#F2B33D;
+  --olive:#7C9A5E;
+  --coral:#E4573D;
+  --mute:#6E7F8B;
+  --line:2px solid var(--ink);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink);
+  color:var(--shell);
+  font-family:'Manrope',system-ui,sans-serif;
+  padding:40px 20px 80px;
+  line-height:1.45;
+}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* ---------- header ---------- */
+.eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--sun);
+}
+h1{
+  font-family:'Unbounded',sans-serif;font-weight:800;
+  font-size:clamp(28px,6vw,54px);line-height:1.02;letter-spacing:-.02em;
+  margin:14px 0 18px;max-width:16ch;
+}
+h1 em{font-family:'EB Garamond',serif;font-style:italic;font-weight:600;color:var(--sea)}
+.lede{max-width:56ch;color:#BFCBD4;font-size:15px}
+.rule{height:2px;background:#1C4058;margin:36px 0 8px}
+
+/* ---------- stage ---------- */
+.stage{
+  display:flex;flex-wrap:wrap;gap:44px 32px;
+  justify-content:center;padding-top:36px;
+}
+.slot{width:320px;max-width:100%}
+.slot .cap{margin-top:18px}
+.cap .n{
+  font-family:'Unbounded',sans-serif;font-size:11px;font-weight:600;
+  color:var(--sun);letter-spacing:.1em;
+}
+.cap .t{font-weight:700;font-size:14px;margin-top:4px}
+.cap .d{font-size:13px;color:#9DAFBB;margin-top:3px}
+
+.phone{
+  width:320px;height:640px;border-radius:34px;
+  background:var(--shell);border:var(--line);
+  box-shadow:10px 10px 0 var(--sea);
+  overflow:hidden;position:relative;color:var(--ink);
+  display:flex;flex-direction:column;
+}
+.phone.dark{background:var(--ink-2);color:var(--shell);box-shadow:10px 10px 0 var(--sun)}
+.notch{
+  position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:96px;height:20px;border-radius:999px;background:var(--ink);z-index:5;
+}
+.phone.dark .notch{background:#000}
+.status{
+  height:38px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 20px 4px;font-size:11px;font-weight:700;letter-spacing:.02em;flex:0 0 auto;
+}
+.body{flex:1;overflow:hidden;padding:14px 18px 0;display:flex;flex-direction:column}
+
+/* ---------- shared bits ---------- */
+.lbl{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.h2{font-family:'Unbounded',sans-serif;font-weight:800;font-size:21px;line-height:1.08;letter-spacing:-.01em;margin-top:6px}
+.h2 em{font-family:'EB Garamond',serif;font-style:italic;font-weight:600;color:var(--coral)}
+.gr{font-family:'EB Garamond',serif;font-weight:600}
+.card{border:var(--line);border-radius:16px;background:#fff;box-shadow:4px 4px 0 var(--ink);padding:13px 14px}
+.chip{
+  border:var(--line);border-radius:999px;padding:5px 12px;
+  font-size:12px;font-weight:700;background:#fff;
+}
+.chip.on{background:var(--ink);color:var(--shell)}
+.row{display:flex;gap:7px;flex-wrap:wrap}
+
+/* ---------- 1. home ---------- */
+.cont{background:var(--sea);margin-top:14px}
+.cont .top{display:flex;justify-content:space-between;align-items:baseline}
+.cont .word{font-size:26px;margin:6px 0 2px}
+.cont .sub{font-size:12.5px;font-weight:600;opacity:.85}
+.bar{height:9px;border:var(--line);border-radius:999px;background:#fff;margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{border:var(--line);border-radius:16px;padding:11px 12px;box-shadow:4px 4px 0 var(--ink)}
+.stat .big{font-family:'Unbounded',sans-serif;font-weight:800;font-size:25px;line-height:1}
+.stat .cap2{font-size:10.5px;font-weight:700;margin-top:3px;line-height:1.25}
+.nav{
+  margin:auto -18px 0;padding:9px 12px 16px;display:flex;justify-content:space-between;
+  align-items:center;background:var(--shell);border-top:var(--line);
+}
+.nav span{font-size:10.5px;font-weight:800;color:var(--mute);padding:6px 9px;border-radius:999px}
+.nav span.on{background:var(--olive);color:#fff;border:var(--line)}
+
+/* ---------- 2. player ---------- */
+.pl-top{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:800;color:var(--mute)}
+.stagebox{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:6px 4px;
+}
+.beatlabel{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--coral);min-height:14px}
+#big{
+  margin-top:12px;font-size:44px;line-height:1.06;letter-spacing:-.01em;
+  min-height:98px;display:flex;align-items:center;justify-content:center;
+}
+#big.ru{font-family:'Manrope',sans-serif;font-weight:800;font-size:32px}
+#big.small{font-size:29px}
+.hint{font-size:11.5px;color:var(--mute);font-weight:600;margin-top:2px}
+.meter{display:flex;gap:5px;width:100%;margin-top:20px}
+.beat{
+  flex:1;height:26px;border:var(--line);border-radius:8px;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;letter-spacing:.04em;color:var(--mute);
+  transition:background .18s ease,color .18s ease;
+}
+.beat.on{background:var(--coral);color:#fff}
+.beat.done{background:var(--olive);color:#fff}
+.beat .gr{font-size:11px}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:16px;margin:20px 0 8px}
+.rnd{
+  width:46px;height:46px;border:var(--line);border-radius:999px;background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;
+  box-shadow:3px 3px 0 var(--ink);
+}
+.rnd.play{width:66px;height:66px;background:var(--sun);font-size:20px;box-shadow:4px 4px 0 var(--ink)}
+.rnd.rep{background:var(--coral);color:#fff;font-size:16px}
+.lockhint{
+  border:var(--line);border-radius:12px;background:var(--olive);color:#fff;
+  padding:8px 11px;font-size:11px;font-weight:700;text-align:center;margin-bottom:14px;
+}
+
+/* ---------- 3. lock ---------- */
+.lock{padding:0 18px;display:flex;flex-direction:column;height:100%}
+.clock{font-family:'Unbounded',sans-serif;font-weight:400;font-size:62px;line-height:1;margin-top:46px;letter-spacing:-.03em}
+.date{font-size:13px;font-weight:600;color:#8FA6B4;margin-top:4px}
+.media{
+  margin-top:auto;margin-bottom:34px;border:2px solid #2A4A61;border-radius:20px;
+  background:#0E2334;padding:14px;
+}
+.media .app{font-size:9.5px;font-weight:800;letter-spacing:.18em;color:var(--sun);text-transform:uppercase}
+.media .w{font-family:'EB Garamond',serif;font-weight:600;font-size:31px;margin-top:7px}
+.media .tr{font-size:13px;color:#9DB2C0;font-weight:600}
+.dots{display:flex;gap:4px;margin:13px 0 12px}
+.dots i{flex:1;height:5px;border-radius:999px;background:#2A4A61}
+.dots i.a{background:var(--coral)}
+.dots i.b{background:var(--olive)}
+.mc{display:flex;justify-content:space-around;align-items:center;font-size:17px;color:var(--shell)}
+
+/* ---------- 4. filters ---------- */
+.seg{display:flex;border:var(--line);border-radius:999px;overflow:hidden;background:#E3DECF;margin-top:8px}
+.seg b{flex:1;text-align:center;font-size:11px;font-weight:700;padding:7px 0}
+.seg b.on{background:var(--ink);color:var(--shell);border-radius:999px}
+.topic{
+  display:flex;justify-content:space-between;align-items:center;
+  border:var(--line);border-radius:12px;padding:8px 11px;margin-top:7px;background:#fff;font-size:13px;font-weight:700;
+}
+.topic.on{background:var(--sun)}
+.topic small{font-size:10.5px;font-weight:700;color:var(--mute)}
+.topic.on small{color:var(--ink)}
+.dialect{border:var(--line);border-radius:16px;background:var(--coral);color:#fff;padding:11px 13px;margin-top:12px;box-shadow:4px 4px 0 var(--ink)}
+.dialect .t{font-size:13px;font-weight:800}
+.dialect .s{font-size:11px;opacity:.92;margin-top:2px}
+.cta{
+  border:var(--line);border-radius:14px;background:var(--ink);color:var(--shell);
+  text-align:center;padding:13px;font-weight:800;font-size:14px;margin:auto 0 16px;
+  box-shadow:4px 4px 0 var(--sea);
+}
+.scroll{overflow:hidden;flex:1}
+
+/* ---------- footer note ---------- */
+.note{
+  margin-top:70px;border-top:2px solid #1C4058;padding-top:24px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;
+}
+.note h3{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:600;color:var(--sun);letter-spacing:.06em}
+.note p{font-size:13.5px;color:#B4C2CC;margin-top:7px}
+.note .gr{color:var(--shell)}
+
+@media (prefers-reduced-motion:reduce){.beat{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Прототип · аудиокурс греческого</div>
+  <h1>Греческий, который влезает в <em>рабочий день.</em></h1>
+  <p class="lede">Четыре экрана. Руки заняты, наушники в ушах, телефон в кармане — интерфейс нужен только на входе и на выходе. Плеер ниже проигрывает настоящий цикл повторения.</p>
+
+  <div class="stage">
+
+    <!-- 1. HOME -->
+    <div class="slot">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>8:42</span><span>●●● ⌁ 68%</span></div>
+        <div class="body">
+          <div class="lbl">Άκου και μάθε</div>
+          <div class="h2">Что сегодня <em>слушаем</em></div>
+
+          <div class="card cont">
+            <div class="top"><span class="lbl" style="color:var(--ink)">Продолжить · 20 мин</span><span style="font-size:11px;font-weight:800">12 / 40</span></div>
+            <div class="word gr">Φαγητό &amp; αγορά</div>
+            <div class="sub">Еда и рынок · обиход</div>
+            <div class="bar"><i style="width:40%"></i></div>
+          </div>
+
+          <div class="lbl" style="margin-top:16px">Длина урока</div>
+          <div class="row" style="margin-top:7px">
+            <span class="chip">10 мин</span><span class="chip on">20 мин</span><span class="chip">40 мин</span>
+          </div>
+
+          <div class="grid2">
+            <div class="stat" style="background:var(--olive);color:#fff">
+              <div class="big">312</div>
+              <div class="cap2">слов узнаёшь<br>на слух</div>
+            </div>
+            <div class="stat" style="background:#fff">
+              <div class="big">6ч 20м</div>
+              <div class="cap2">прослушано<br>за 3 недели</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:10px;background:var(--sun);box-shadow:4px 4px 0 var(--ink)">
+            <div class="lbl" style="color:var(--ink)">Готово к работе</div>
+            <div style="font-size:13px;font-weight:700;margin-top:3px">Урок скачан — интернет не нужен</div>
+          </div>
+
+          <div class="nav">
+            <span class="on">Слушать</span><span>Темы</span><span>Повтор</span><span>Я</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <div class="n">ЭКРАН 01</div>
+        <div class="t">Вход занимает два касания</div>
+        <div class="d">Длина урока сверху: человек выбирает не тему, а сколько у него сейчас времени.</div>
+      </div>
+    </div>
+
+    <!-- 2. PLAYER -->
+    <div class="slot">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>8:44</span><span>●●● ⌁ 67%</span></div>
+        <div class="body">
+          <div class="pl-top"><span>ЕДА И РЫНОК · 20 МИН</span><span>12 / 40</span></div>
+
+          <div class="stagebox">
+            <div class="beatlabel" id="blabel">Греческий</div>
+            <div id="big" class="gr">ψωμί</div>
+            <div class="hint" id="bhint">слушай, не повторяй вслух</div>
+
+            <div class="meter">
+              <div class="beat" data-i="0"><span class="gr">ΓΡ</span></div>
+              <div class="beat" data-i="1">RU</div>
+              <div class="beat" data-i="2"><span class="gr">ΓΡ</span></div>
+              <div class="beat" data-i="3">ФРАЗА</div>
+              <div class="beat" data-i="4">ПЕР.</div>
+            </div>
+          </div>
+
+          <div class="ctrl">
+            <div class="rnd">−15</div>
+            <div class="rnd play">❚❚</div>
+            <div class="rnd rep">↻</div>
+          </div>
+          <div class="lockhint">Можно выключить экран — урок не остановится</div>
+        </div>
+      </div>
+      <div class="cap">
+        <div class="n">ЭКРАН 02</div>
+        <div class="t">Пятитактный цикл — сам продукт</div>
+        <div class="d">Метод видно за две секунды, объяснять его не нужно. Повтор урока — на главной кнопке, а не в настройках.</div>
+      </div>
+    </div>
+
+    <!-- 3. LOCK -->
+    <div class="slot">
+      <div class="phone dark">
+        <div class="notch"></div>
+        <div class="status" style="color:var(--shell)"><span>8:47</span><span>●●● ⌁ 66%</span></div>
+        <div class="lock">
+          <div class="clock">8:47</div>
+          <div class="date">пятница, 14 августа</div>
+
+          <div class="media">
+            <div class="app">Άκου · пакет 3</div>
+            <div class="w">Πόσο κάνει το ψωμί;</div>
+            <div class="tr">Сколько стоит хлеб?</div>
+            <div class="dots"><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i></i></div>
+            <div class="mc"><span>−15</span><span>❚❚</span><span>+15</span><span style="color:var(--coral)">↻</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <div class="n">ЭКРАН 03</div>
+        <div class="t">Главный экран — тот, на который не смотрят</div>
+        <div class="d">Кнопка на наушниках, локскрин, автопауза на звонок. Это скриншот, который надо ставить первым на лендинг.</div>
+      </div>
+    </div>
+
+    <!-- 4. FILTERS -->
+    <div class="slot">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>8:49</span><span>●●● ⌁ 66%</span></div>
+        <div class="body">
+          <div class="lbl">Собрать урок</div>
+          <div class="h2">Под то, что <em>вокруг тебя</em></div>
+
+          <div class="scroll">
+            <div class="lbl" style="margin-top:14px">Уровень</div>
+            <div class="seg"><b class="on">Первые слова</b><b>Обиход</b><b>Свободно</b></div>
+
+            <div class="lbl" style="margin-top:14px">Темы</div>
+            <div class="topic on"><span>Еда и рынок</span><small>140 слов</small></div>
+            <div class="topic on"><span>Соседи и двор</span><small>95 слов</small></div>
+            <div class="topic"><span>Работа и стройка</span><small>170 слов</small></div>
+            <div class="topic"><span>Врач и аптека</span><small>110 слов</small></div>
+            <div class="topic"><span>Кафенио</span><small>80 слов</small></div>
+
+            <div class="dialect">
+              <div class="t">Κυπριακά · кипрский</div>
+              <div class="s">Так говорят в Лимассоле, а не в учебнике</div>
+            </div>
+          </div>
+
+          <div class="cta">Собрать урок · 20 мин</div>
+        </div>
+      </div>
+      <div class="cap">
+        <div class="n">ЭКРАН 04</div>
+        <div class="t">Темы названы по жизни, а не по учебнику</div>
+        <div class="d">«Соседи и двор», «Кафенио» вместо «Лексика A1». Переключатель диалекта — то, чего нет ни у кого.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <div>
+      <h3>ПОЧЕМУ ГАРАМОН</h3>
+      <p>Греческий набран <span class="gr">EB Garamond</span> — шрифтом, чья греческая версия рисовалась в XVI веке для печати греческих книг. Язык всегда в одной гарнитуре, интерфейс — в другой. Глаз мгновенно отделяет «что учу» от «чем пользуюсь».</p>
+    </div>
+    <div>
+      <h3>ЦВЕТ</h3>
+      <p>Эгейская ночь как фон, извёстка стен как карточки, шафран и олива как прогресс. Коралловый — только текущий такт цикла и повтор: единственное, что должно бросаться в глаза на бегу.</p>
+    </div>
+    <div>
+      <h3>ЧТО ЗДЕСЬ НЕ НАРИСОВАНО</h3>
+      <p>Стрики, сердечки, очки и ежедневная вина. Продукт для человека, который уже работает — наказывать его за пропуск нельзя, он просто удалит приложение.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  var beats=[
+    {t:'ψωμί',                cls:'gr',        label:'Греческий',     hint:'слушай, не повторяй вслух', ms:2200},
+    {t:'хлеб',                cls:'ru',        label:'Перевод',       hint:'',                          ms:1800},
+    {t:'ψωμί',                cls:'gr',        label:'Ещё раз',       hint:'теперь узнаёшь',            ms:2000},
+    {t:'Πόσο κάνει το ψωμί;', cls:'gr small',  label:'В фразе',       hint:'',                          ms:2600},
+    {t:'Сколько стоит хлеб?', cls:'ru small',  label:'Перевод фразы', hint:'',                          ms:2400}
+  ];
+  var big=document.getElementById('big'),
+      lab=document.getElementById('blabel'),
+      hint=document.getElementById('bhint'),
+      cells=[].slice.call(document.querySelectorAll('.beat')),
+      i=0, timer;
+
+  function render(){
+    var b=beats[i];
+    big.className=b.cls;
+    big.textContent=b.t;
+    lab.textContent=b.label;
+    hint.textContent=b.hint;
+    cells.forEach(function(c,n){
+      c.className='beat'+(n===i?' on':(n<i?' done':''));
+    });
+  }
+  function step(){
+    render();
+    timer=setTimeout(function(){ i=(i+1)%beats.length; step(); }, beats[i].ms);
+  }
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    i=3; render();
+  } else {
+    step();
+  }
+})();
+</script>
+</body>
+</html>
