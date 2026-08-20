@@ -84,7 +84,11 @@ def serve():
 
 def main() -> int:
     httpd = serve()
-    lesson = json.loads((ROOT / "build" / "base-01-20.timings.json").read_text(encoding="utf-8"))
+    manifests = sorted((ROOT / "build").glob("session-*.timings.json"))
+    if not manifests:
+        print("! нет собранных сессий - сначала python3 tools/build_session.py --minutes 10")
+        return 1
+    lesson = json.loads(manifests[0].read_text(encoding="utf-8"))
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -96,24 +100,18 @@ def main() -> int:
         page.wait_for_timeout(700)
 
         print("\nэкран 1: главный")
-        check("данные загрузились", page.evaluate("window.LESSONS ? window.LESSONS.length : 0") == 3)
+        check("данные загрузились", page.evaluate("window.LESSONS ? window.LESSONS.length : 0") >= 1)
         chips = page.locator("#tierRow .chip")
-        check("три кнопки длины", chips.count() == 3, f"найдено {chips.count()}")
-        check("подписи 10/20/40",
-              [chips.nth(i).inner_text() for i in range(chips.count())] ==
-              ["10 мин", "20 мин", "40 мин"])
-        check("по умолчанию выбраны 20 мин", "on" in (chips.nth(1).get_attribute("class") or ""))
-
-        print("\nпереключение длины")
-        chips.nth(2).click()
-        page.wait_for_timeout(300)
-        check("40 мин подхватились",
-              "40" in page.locator("#contLen").inner_text() and
-              page.evaluate("document.getElementById('audio').src").endswith("base-01-40.mp3"))
-        chips.nth(1).click()
-        page.wait_for_timeout(300)
-        check("вернулись на 20 мин",
-              page.evaluate("document.getElementById('audio').src").endswith("base-01-20.mp3"))
+        n_lessons = page.evaluate("window.LESSONS.length")
+        check("кнопка на каждую сессию", chips.count() == n_lessons,
+              f"сессий {n_lessons}, кнопок {chips.count()}")
+        label = chips.nth(0).inner_text()
+        check("на кнопке длина сессии в минутах", "мин" in label and "0 мин" != label.strip(),
+              label)
+        check("выбрана первая сессия", "on" in (chips.nth(0).get_attribute("class") or ""))
+        check("длина на главной совпадает с файлом",
+              str(round(lesson["duration_ms"] / 60000)) in page.locator("#contLen").inner_text(),
+              page.locator("#contLen").inner_text())
 
         print("\nэкран 2: плеер")
         page.locator("#continueCard").click()

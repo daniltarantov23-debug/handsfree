@@ -140,7 +140,7 @@ def main() -> int:
         "review": review_items,
     }
 
-    result = build_tier(pack, str(course_path), 0, pack["items"], review_items,
+    result = build_tier(pack, str(course_path), int(args.minutes), pack["items"], review_items,
                         Path(args.out), Path(args.cache), args.format, args.dry_run,
                         args.fresh, target_s=args.minutes * 60, review_s=review_s,
                         label=name)

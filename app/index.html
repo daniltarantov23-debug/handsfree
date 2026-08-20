@@ -216,11 +216,8 @@ button{font-family:inherit;cursor:pointer;color:inherit}
         <div class="bar"><i id="contBar" style="width:0%"></i></div>
       </button>
 
-      <div class="lbl" style="margin-top:16px">Длина урока</div>
+      <div class="lbl" style="margin-top:16px">Сессия</div>
       <div class="row" style="margin-top:7px" id="tierRow"></div>
-
-      <div class="lbl" style="margin-top:14px">День курса</div>
-      <div class="row" style="margin-top:7px" id="dayRow"></div>
 
       <div class="grid2">
         <div class="stat" style="background:var(--olive);color:#fff">
@@ -413,25 +410,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   }
 
   // ------- состояние -------
-  // Уроки живут парами «день + длина» (day-02-20). День выбирается отдельно,
-  // длина отдельно; список длин пересчитывается под выбранный день.
-  var dayOf = function(id){ return String(id).replace(/-\d+$/, ''); };
-  var days = L.map(function(l){ return dayOf(l.id); })
-              .filter(function(d,i,a){ return a.indexOf(d)===i; }).sort();
-  var day = days[0];
-  var mine = [], tiers = [], lesson = null;
-
-  function selectDay(d){
-    day = d;
-    mine = L.filter(function(l){ return dayOf(l.id)===day; });
-    tiers = mine.map(function(l){ return l.tier; })
-                .filter(function(t,i,a){ return a.indexOf(t)===i; })
-                .sort(function(a,b){ return a-b; });
-    var keep = lesson ? lesson.tier : 20;
-    lesson = mine.find(function(l){ return l.tier===keep; }) ||
-             mine.find(function(l){ return l.tier===20; }) || mine[0];
-  }
-  selectDay(day);
+  // Сессия - самостоятельный файл произвольной длины. Ни дней, ни фиксированных
+  // длин: список - это просто собранные сессии.
+  var lesson = L[0];
   var marked = [];          // слова, отмеченные двойным касанием
   var heard = {};           // сколько слов уже прозвучало целиком
   var listened = 0;         // секунд в этой сессии
@@ -471,44 +452,27 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
   // ------- выбор длины -------
   function renderTiers(){
+    // Сессии - самостоятельные файлы произвольной длины, а не варианты одного
+    // урока. Поэтому список один: сессия и сколько в ней минут.
     var row = el('tierRow');
     row.innerHTML = '';
-    tiers.forEach(function(t){
+    L.forEach(function(l){
       var b = document.createElement('button');
-      b.className = 'chip' + (t===lesson.tier ? ' on' : '');
-      b.textContent = t + ' мин';
-      b.onclick = function(){ pick(t); };
+      b.className = 'chip' + (l.id===lesson.id ? ' on' : '');
+      var mins = Math.round((l.duration||0)/60000);
+      b.textContent = (l.title || l.id) + ' · ' + mins + ' мин';
+      b.onclick = function(){ pickLesson(l); };
       row.appendChild(b);
     });
   }
-  function renderDays(){
-    var row = el('dayRow');
-    row.innerHTML = '';
-    days.forEach(function(d, n){
-      var b = document.createElement('button');
-      b.className = 'chip' + (d===day ? ' on' : '');
-      b.textContent = 'День ' + (n+1);
-      b.onclick = function(){
-        var wasPlaying = !audio.paused;
-        selectDay(d);
-        audio.src = lesson.audio; audio.currentTime = 0; cur = null;
-        indexWords(); renderDays(); renderTiers(); renderHome();
-        if(wasPlaying) play();
-      };
-      row.appendChild(b);
-    });
-  }
-
-  function pick(t){
-    var next = mine.find(function(l){ return l.tier===t; });
-    if(!next) return;
+  function pickLesson(next){
+    if(!next || next.id===lesson.id) return;
     var wasPlaying = !audio.paused;
     lesson = next;
     audio.src = lesson.audio;
     audio.currentTime = 0;
     cur = null; indexWords();
-    renderTiers(); renderDays(); renderHome();
-    el('btnBuild').textContent = 'Собрать урок · ' + t + ' мин';
+    renderTiers(); renderHome();
     if(wasPlaying) audio.play();
   }
 
@@ -519,7 +483,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
   function renderHome(){
     var words = newTotal;
-    el('contLen').textContent = 'Продолжить · ' + lesson.tier + ' мин';
+    el('contLen').textContent = 'Продолжить · ' + Math.round((lesson.duration||0)/60000) + ' мин';
     el('contPos').textContent = Object.keys(heard).length + ' / ' + words;
     el('contTitle').textContent = lesson.theme === 'В магазине' ? 'Αγορά' : 'Βάση';
     el('contSub').textContent = (lesson.theme||'База') + ' · ' +
@@ -527,7 +491,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
     el('contBar').style.width = (audio.duration ? audio.currentTime/audio.duration*100 : 0) + '%';
     el('statWords').textContent = Object.keys(heard).length;
     el('statTime').textContent = Math.floor(listened/60) + 'м';
-    el('plTheme').textContent = (lesson.theme||'БАЗА').toUpperCase() + ' · ' + lesson.tier + ' МИН';
+    el('plTheme').textContent = (lesson.theme||'БАЗА').toUpperCase() + ' · ' + Math.round((lesson.duration||0)/60000) + ' МИН';
   }
 
   el('continueCard').onclick = function(){ go('s-player'); play(); };
@@ -848,7 +812,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   // ------- старт -------
   audio.src = lesson.audio;
   indexWords();
-  renderDays(); renderTiers(); renderHome(); renderTaps(); paintIdle();
+  renderTiers(); renderHome(); renderTaps(); paintIdle();
   el('plPos').textContent = '1 / ' + newTotal;
   el('tLeft').textContent = '-' + fmt(lesson.duration/1000);
 })();
