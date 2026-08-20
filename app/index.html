@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ΑΚΟΥ</title>
+<title>Handsfree</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
@@ -192,7 +192,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 <body>
 
 <div class="brand">
-  <div class="eyebrow">ΑΚΟΥ · рабочий прототип</div>
+  <div class="eyebrow">HANDSFREE · греческий</div>
   <h1>Греческий, который влезает в рабочий день</h1>
   <p>Плеер играет настоящий урок. Такты подсвечиваются по манифесту таймингов - тому же, по которому касание наушника находит слово.</p>
 </div>
@@ -205,7 +205,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 
     <!-- 1. ГЛАВНЫЙ -->
     <section class="screen on" id="s-home">
-      <div class="lbl">Άκου και μάθε</div>
+      <div class="lbl">Слушай и запоминай</div>
       <div class="h2">Что сегодня <em>слушаем</em></div>
 
       <button class="card cont" id="continueCard">
@@ -361,7 +361,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
         <div class="clock" id="lockClock">8:47</div>
         <div class="date" id="lockDate">пятница, 14 августа</div>
         <div class="media">
-          <div class="app">Άκου · база, урок 1</div>
+          <div class="app">Handsfree · греческий</div>
           <div class="w gr" id="lockWord">ψωμί</div>
           <div class="syl" id="lockSyl" style="color:var(--sun);font-size:13px;margin-top:4px">псо-МИ</div>
           <div class="tr" id="lockTr">хлеб</div>
@@ -632,8 +632,8 @@ button{font-family:inherit;cursor:pointer;color:inherit}
     if(!('mediaSession' in navigator) || !window.MediaMetadata) return;
     try{
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: cur ? (cur.gr + '  ·  ' + (cur.ru||'')) : (lesson.title || 'ΑΚΟΥ'),
-        artist: cur && cur.syl ? cur.syl : 'Άκου - греческий на слух',
+        title: cur ? (cur.gr + '  ·  ' + (cur.ru||'')) : (lesson.title || 'Handsfree'),
+        artist: cur && cur.syl ? cur.syl : 'Handsfree - греческий на слух',
         album: (lesson.theme || '') + (lesson.title ? ' · ' + lesson.title : '')
       });
     }catch(e){}
