@@ -30,17 +30,32 @@ git config --global user.email "твоя@почта"
 **2. Создай пустой репозиторий** на github.com - например `akou-greek`.
 Без README, без .gitignore.
 
-**3. Отправь код** (я подготовлю коммит, тебе останется push):
+**3. Привяжи репозиторий и отправь исходники:**
 
 ```bash
 cd greek-app && git remote add origin https://github.com/ТВОЙ_ЛОГИН/akou-greek.git && git push -u origin main
 ```
 
 При первом пуше GitHub попросит логин и токен - вводишь ты, в своём терминале.
+Пароль от аккаунта не подойдёт, нужен Personal Access Token: github.com → Settings →
+Developer settings → Personal access tokens → Tokens (classic) → Generate new token,
+права `repo`. Токен вижу только ты, мне его показывать не надо.
 
-**4. Включи Pages:** Settings → Pages → Source: `main`, папка `/site` → Save.
+**4. Опубликуй сайт:**
+
+```bash
+./tools/deploy.sh
+```
+
+Скрипт кладёт `site/` в отдельную ветку `gh-pages` и каждый раз перезаписывает её
+одним коммитом. Это важно: аудио тяжёлое, а git хранит все версии - при обычном
+пуше репозиторий рос бы на 30-60 МБ с каждой пересборкой и упёрся бы в лимит 1 ГБ.
+Здесь он всегда размером с текущее аудио.
+
+**5. Включи Pages:** Settings → Pages → Source: ветка `gh-pages`, папка `/(root)` → Save.
 
 Через минуту сайт будет на `https://ТВОЙ_ЛОГИН.github.io/akou-greek/`.
+Добавь на домашний экран телефона - так фоновое воспроизведение надёжнее.
 
 ## Ограничения, о которых надо знать заранее
 
@@ -58,7 +73,14 @@ cd greek-app && git remote add origin https://github.com/ТВОЙ_ЛОГИН/ako
 ```bash
 python3 tools/build_session.py --minutes 120 --review 60
 python3 tools/build_app_data.py && python3 tools/build_site.py
-git add site && git commit -m "новая сессия" && git push
+./tools/deploy.sh
 ```
 
-Pages подхватит изменения сам за минуту.
+Pages подхватит изменения за минуту.
+
+## Сколько аудио держать на сайте
+
+Весь курс онлайн не нужен - только то, что слушаешь сейчас. `build_site.py --only`
+кладёт в `site/` конкретную сессию. При 5000 слов весь корпус - это около 20 часов
+и ~600 МБ, в репозиторий такое загонять не надо: держи 2-3 свежие сессии, остальное
+лежит локально в `build/`.
