@@ -49,7 +49,8 @@ def syllables(word: str) -> int:
     return count
 
 
-def check_item(pack_id: str, idx: int, item: dict, seen: dict, errors: list, warns: list):
+def check_item(pack_id: str, idx: int, item: dict, seen: dict, seen_words: dict,
+               seen_bare: dict, errors: list, warns: list):
     where = f"{pack_id} #{idx} ({item.get('gr', '?')})"
 
     for field in ("gr", "ru"):
@@ -112,6 +113,24 @@ def check_item(pack_id: str, idx: int, item: dict, seen: dict, errors: list, war
     else:
         seen[key] = where
 
+    # То же слово под другим id - на пяти тысячах слов это неизбежно, если не ловить.
+    # Ударение НЕ игнорируем: в греческом его место различает слова
+    # (πότε «когда» и ποτέ «никогда» - разные слова, а не опечатка).
+    word = (item.get("gr") or "").lower()
+    if word:
+        if word in seen_words:
+            errors.append(f"{where}: слово '{item['gr']}' уже есть в {seen_words[word]} "
+                          f"(под другим id)")
+        else:
+            seen_words[word] = where
+        # Совпадение с точностью до ударения - повод посмотреть глазами.
+        bare = strip_accents(word)
+        twin = seen_bare.get(bare)
+        if twin and twin != where:
+            warns.append(f"{where}: отличается от {twin} только ударением - проверь, "
+                         "что это правда разные слова")
+        seen_bare.setdefault(bare, where)
+
     if item.get("forms") and not isinstance(item["forms"], list):
         errors.append(f"{where}: 'forms' должно быть списком")
 
@@ -129,7 +148,7 @@ def main() -> int:
         print("! файлы не найдены", file=sys.stderr)
         return 1
 
-    errors, warns, seen, total = [], [], {}, 0
+    errors, warns, seen, seen_words, seen_bare, total = [], [], {}, {}, {}, 0
     for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
         if "packs" in data:          # это файл курса, не пакет
@@ -138,7 +157,7 @@ def main() -> int:
         items = (data.get("items") or []) + (data.get("review") or [])
         total += len(items)
         for idx, item in enumerate(items, 1):
-            check_item(pack_id, idx, item, seen, errors, warns)
+            check_item(pack_id, idx, item, seen, seen_words, seen_bare, errors, warns)
         print(f"{path}: {len(items)} элементов")
 
     for w in warns:
