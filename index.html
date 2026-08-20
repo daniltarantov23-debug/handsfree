@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handsfree</title>
+<meta name='theme-color' content='#0B2739'>
+<meta name='apple-mobile-web-app-capable' content='yes'>
+<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent'>
+<meta name='apple-mobile-web-app-title' content='Handsfree'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0B2739;
+  --ink-2:#071A28;
+  --shell:#F2EEE2;
+  --sea:#3AA7C4;
+  --sun:#F2B33D;
+  --olive:#7C9A5E;
+  --coral:#E4573D;
+  --mute:#6E7F8B;
+  --line:2px solid var(--ink);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--ink);color:var(--shell);
+  font-family:'Manrope',system-ui,sans-serif;line-height:1.45;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:28px 16px 40px;gap:22px;
+}
+.brand{text-align:center}
+.brand .eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--sun)}
+.brand h1{font-family:'Unbounded',sans-serif;font-weight:800;font-size:22px;margin-top:6px;letter-spacing:-.01em}
+.brand p{font-size:12.5px;color:#9DAFBB;margin-top:5px;max-width:46ch}
+
+/* ---------- корпус ---------- */
+.phone{
+  width:320px;height:640px;border-radius:34px;
+  background:var(--shell);border:var(--line);box-shadow:10px 10px 0 var(--sea);
+  overflow:hidden;position:relative;color:var(--ink);
+  display:flex;flex-direction:column;flex:0 0 auto;
+}
+.phone.dark{background:var(--ink-2);color:var(--shell);box-shadow:10px 10px 0 var(--sun)}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:96px;height:20px;border-radius:999px;background:var(--ink);z-index:5}
+.phone.dark .notch{background:#000}
+.status{height:38px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 20px 4px;font-size:11px;font-weight:700;flex:0 0 auto}
+.body{flex:1;overflow:hidden;padding:14px 18px 0;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;min-height:0}
+.screen.on{display:flex}
+
+/* ---------- общее ---------- */
+.lbl{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.h2{font-family:'Unbounded',sans-serif;font-weight:800;font-size:21px;line-height:1.08;margin-top:6px}
+.h2 em{font-family:'EB Garamond',serif;font-style:italic;font-weight:600;color:var(--coral)}
+.gr{font-family:'EB Garamond',serif;font-weight:600}
+.card{border:var(--line);border-radius:16px;background:#fff;box-shadow:4px 4px 0 var(--ink);padding:13px 14px}
+.chip{border:var(--line);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:700;
+  background:#fff;cursor:pointer;font-family:inherit;color:inherit}
+.chip.on{background:var(--ink);color:var(--shell)}
+.row{display:flex;gap:7px;flex-wrap:wrap}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.scroll{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ---------- 1. главный ---------- */
+.cont{background:var(--sea);margin-top:14px;cursor:pointer;text-align:left;width:100%;display:block}
+.cont .top{display:flex;justify-content:space-between;align-items:baseline}
+.cont .word{font-size:26px;margin:6px 0 2px}
+.cont .sub{font-size:12.5px;font-weight:600;opacity:.85}
+.bar{height:9px;border:var(--line);border-radius:999px;background:#fff;margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--sun);transition:width .3s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{border:var(--line);border-radius:16px;padding:11px 12px;box-shadow:4px 4px 0 var(--ink)}
+.stat .big{font-family:'Unbounded',sans-serif;font-weight:800;font-size:25px;line-height:1}
+.stat .cap2{font-size:10.5px;font-weight:700;margin-top:3px;line-height:1.25}
+.nav{margin:auto -18px 0;padding:9px 12px 16px;display:flex;justify-content:space-between;
+  align-items:center;background:var(--shell);border-top:var(--line);flex:0 0 auto}
+.nav button{font-size:10.5px;font-weight:800;color:var(--mute);padding:6px 9px;
+  border-radius:999px;background:none;border:2px solid transparent}
+.nav button.on{background:var(--olive);color:#fff;border:var(--line)}
+
+/* ---------- 2. плеер ---------- */
+.pl-top{display:flex;justify-content:space-between;align-items:center;
+  font-size:10.5px;font-weight:800;color:var(--mute);flex:0 0 auto}
+.stagebox{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:6px 4px;min-height:0}
+.beatlabel{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--coral);min-height:14px}
+#big{margin-top:10px;font-size:42px;line-height:1.06;min-height:96px;
+  display:flex;align-items:center;justify-content:center}
+#big.ru{font-family:'Manrope',sans-serif;font-weight:800;font-size:31px}
+#big.small{font-size:27px}
+#big.pausing{color:var(--mute)}
+.syl{font-family:'Manrope',sans-serif;font-size:15px;font-weight:800;letter-spacing:.04em;
+  color:var(--sea);margin-top:8px;min-height:20px}
+.hint{font-size:11.5px;color:var(--mute);font-weight:600;margin-top:4px;min-height:16px}
+.meter{display:flex;gap:5px;width:100%;margin-top:18px}
+.beat{flex:1;height:26px;border:var(--line);border-radius:8px;background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;
+  color:var(--mute);transition:background .15s ease,color .15s ease}
+.beat.on{background:var(--coral);color:#fff}
+.beat.done{background:var(--olive);color:#fff}
+.beat .gr{font-size:11px}
+.seek{width:100%;margin-top:12px;height:6px;border:var(--line);border-radius:999px;
+  background:#fff;overflow:hidden;cursor:pointer}
+.seek i{display:block;height:100%;background:var(--sea)}
+.times{display:flex;justify-content:space-between;width:100%;font-size:10px;
+  font-weight:700;color:var(--mute);margin-top:5px}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0 8px;flex:0 0 auto}
+.rnd{width:46px;height:46px;border:var(--line);border-radius:999px;background:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;
+  box-shadow:3px 3px 0 var(--ink)}
+.rnd:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.rnd.play{width:64px;height:64px;background:var(--sun);font-size:19px;box-shadow:4px 4px 0 var(--ink)}
+.rnd.rep{background:var(--coral);color:#fff;font-size:16px}
+.notunder{border:var(--line);border-radius:12px;background:var(--olive);color:#fff;
+  padding:9px 11px;font-size:11.5px;font-weight:800;text-align:center;margin-bottom:12px;
+  width:100%;box-shadow:3px 3px 0 var(--ink)}
+.notunder:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.notunder.hit{background:var(--coral)}
+
+/* ---------- 3. локскрин ---------- */
+.lock{padding:0 18px;display:flex;flex-direction:column;height:100%}
+.clock{font-family:'Unbounded',sans-serif;font-weight:400;font-size:58px;line-height:1;
+  margin-top:44px;letter-spacing:-.03em}
+.date{font-size:13px;font-weight:600;color:#8FA6B4;margin-top:4px}
+.media{margin-top:auto;margin-bottom:30px;border:2px solid #2A4A61;border-radius:20px;
+  background:#0E2334;padding:14px}
+.media .app{font-size:9.5px;font-weight:800;letter-spacing:.18em;color:var(--sun);text-transform:uppercase}
+.media .w{font-family:'EB Garamond',serif;font-weight:600;font-size:29px;margin-top:7px;min-height:34px}
+.media .tr{font-size:13px;color:#9DB2C0;font-weight:600;min-height:19px}
+.dots{display:flex;gap:4px;margin:13px 0 12px}
+.dots i{flex:1;height:5px;border-radius:999px;background:#2A4A61}
+.dots i.a{background:var(--coral)}
+.dots i.b{background:var(--olive)}
+.mc{display:flex;justify-content:space-around;align-items:center;font-size:16px}
+.mc button{background:none;border:none;font-size:16px;color:var(--shell);padding:4px 8px}
+.mc button.rep{color:var(--coral)}
+.backlink{position:absolute;top:44px;right:16px;font-size:10px;font-weight:800;
+  color:var(--sun);background:none;border:none;letter-spacing:.08em}
+
+/* ---------- 4. темы ---------- */
+.seg{display:flex;border:var(--line);border-radius:999px;overflow:hidden;
+  background:#E3DECF;margin-top:8px}
+.seg button{flex:1;text-align:center;font-size:11px;font-weight:700;padding:7px 0;
+  background:none;border:none}
+.seg button.on{background:var(--ink);color:var(--shell);border-radius:999px}
+.topic{display:flex;justify-content:space-between;align-items:center;width:100%;
+  border:var(--line);border-radius:12px;padding:8px 11px;margin-top:7px;background:#fff;
+  font-size:13px;font-weight:700}
+.topic.on{background:var(--sun)}
+.topic small{font-size:10.5px;font-weight:700;color:var(--mute)}
+.topic.on small{color:var(--ink)}
+.topic.soon{opacity:.5}
+.dialect{border:var(--line);border-radius:16px;background:var(--coral);color:#fff;
+  padding:11px 13px;margin-top:12px;box-shadow:4px 4px 0 var(--ink);width:100%;text-align:left}
+.dialect .t{font-size:13px;font-weight:800}
+.dialect .s{font-size:11px;opacity:.92;margin-top:2px}
+.cta{border:var(--line);border-radius:14px;background:var(--ink);color:var(--shell);
+  text-align:center;padding:13px;font-weight:800;font-size:14px;margin:12px 0 16px;
+  box-shadow:4px 4px 0 var(--sea);width:100%;flex:0 0 auto}
+
+/* ---------- 5. повтор ---------- */
+.marked{display:flex;justify-content:space-between;align-items:center;
+  border:var(--line);border-radius:12px;padding:8px 11px;margin-top:7px;background:#fff}
+.marked .w{font-family:'EB Garamond',serif;font-weight:600;font-size:17px}
+.marked .t{font-size:11px;color:var(--mute);font-weight:700}
+.marked button{background:none;border:none;font-size:14px;color:var(--coral);font-weight:800}
+.empty{font-size:12.5px;color:var(--mute);font-weight:600;margin-top:14px;line-height:1.5}
+.export{border:var(--line);border-radius:12px;background:#fff;padding:10px;font-size:11px;
+  font-weight:800;width:100%;box-shadow:3px 3px 0 var(--ink);margin:10px 0 16px}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:10px;background:#E9E4D5;
+  border:var(--line);border-radius:10px;padding:8px;margin-top:8px;word-break:break-all;
+  max-height:110px;overflow:auto}
+
+/* ---------- пульт ---------- */
+.remote{width:320px;max-width:100%}
+.remote h3{font-family:'Unbounded',sans-serif;font-size:11px;font-weight:600;
+  color:var(--sun);letter-spacing:.08em}
+.remote p{font-size:12px;color:#B4C2CC;margin-top:6px}
+.remote .keys{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+.remote .keys button{display:flex;justify-content:space-between;align-items:center;
+  background:#0E2334;border:2px solid #2A4A61;border-radius:12px;padding:9px 12px;
+  color:var(--shell);font-size:12px;font-weight:700;text-align:left}
+.remote .keys button:active{background:#14314a}
+.remote .keys b{font-size:10px;color:var(--sun);font-weight:800;letter-spacing:.06em}
+.warn{border:2px solid var(--coral);border-radius:12px;padding:10px 12px;font-size:11.5px;
+  color:#F2C9C0;margin-top:12px;background:rgba(228,87,61,.12)}
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <div class="eyebrow">HANDSFREE · греческий</div>
+  <h1>Греческий, который влезает в рабочий день</h1>
+  <p>Плеер играет настоящий урок. Такты подсвечиваются по манифесту таймингов - тому же, по которому касание наушника находит слово.</p>
+</div>
+
+<div class="phone" id="phone">
+  <div class="notch"></div>
+  <div class="status"><span id="clock">8:42</span><span>●●● ⌁ 68%</span></div>
+
+  <div class="body">
+
+    <!-- 1. ГЛАВНЫЙ -->
+    <section class="screen on" id="s-home">
+      <div class="lbl">Слушай и запоминай</div>
+      <div class="h2">Что сегодня <em>слушаем</em></div>
+
+      <button class="card cont" id="continueCard">
+        <div class="top"><span class="lbl" style="color:var(--ink)" id="contLen">Продолжить · 20 мин</span>
+          <span style="font-size:11px;font-weight:800" id="contPos">0 / 82</span></div>
+        <div class="word gr" id="contTitle">Βάση</div>
+        <div class="sub" id="contSub">База · первые слова</div>
+        <div class="bar"><i id="contBar" style="width:0%"></i></div>
+      </button>
+
+      <div class="lbl" style="margin-top:16px">Сессия</div>
+      <div class="row" style="margin-top:7px" id="tierRow"></div>
+
+      <div class="grid2">
+        <div class="stat" style="background:var(--olive);color:#fff">
+          <div class="big" id="statWords">0</div>
+          <div class="cap2">слов узнаёшь<br>на слух</div>
+        </div>
+        <div class="stat" style="background:#fff">
+          <div class="big" id="statTime">0м</div>
+          <div class="cap2">прослушано<br>в этой сессии</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;background:var(--sun);box-shadow:4px 4px 0 var(--ink)">
+        <div class="lbl" style="color:var(--ink)">Готово к работе</div>
+        <div style="font-size:13px;font-weight:700;margin-top:3px">Урок скачан - интернет не нужен</div>
+      </div>
+    </section>
+
+    <!-- 2. ПЛЕЕР -->
+    <section class="screen" id="s-player">
+      <div class="pl-top"><span id="plTheme">БАЗА · 20 МИН</span><span id="plPos">1 / 82</span></div>
+
+      <div class="stagebox">
+        <div class="beatlabel" id="blabel">Греческий</div>
+        <div id="big" class="gr">ψωμί</div>
+        <div class="syl" id="bsyl">псо-МИ</div>
+        <div class="hint" id="bhint">вспомни перевод</div>
+
+        <div class="meter" id="meter">
+          <div class="beat" data-role="gr"><span class="gr">ΓΡ</span></div>
+          <div class="beat" data-role="ru">RU</div>
+          <div class="beat" data-role="gr2"><span class="gr">ΓΡ</span></div>
+          <div class="beat" data-role="phrase">ФРАЗА</div>
+          <div class="beat" data-role="phrase_ru">ПЕР.</div>
+        </div>
+
+        <div class="seek" id="seek"><i id="seekBar" style="width:0%"></i></div>
+        <div class="times"><span id="tNow">0:00</span><span id="tLeft">-20:00</span></div>
+      </div>
+
+      <button class="notunder" id="btnNot">Не понял · двойное касание</button>
+      <div class="ctrl">
+        <div class="rnd" id="btnBack">−15</div>
+        <div class="rnd play" id="btnPlay">▶</div>
+        <div class="rnd rep" id="btnRep">↻</div>
+      </div>
+    </section>
+
+    <!-- 4. ТЕМЫ -->
+    <section class="screen" id="s-topics">
+      <div class="lbl">Собрать урок</div>
+      <div class="h2">Под то, что <em>вокруг тебя</em></div>
+
+      <div class="scroll">
+        <div class="lbl" style="margin-top:14px">Уровень</div>
+        <div class="seg" id="levelSeg">
+          <button class="on">Первые слова</button><button>Обиход</button><button>Свободно</button>
+        </div>
+
+        <div class="lbl" style="margin-top:14px">Темы</div>
+        <button class="topic on" data-topic="База"><span>База</span><small>200 слов</small></button>
+        <button class="topic soon"><span>В магазине</span><small>скоро</small></button>
+        <button class="topic soon"><span>В ресторане</span><small>скоро</small></button>
+        <button class="topic soon"><span>В госучреждении</span><small>скоро</small></button>
+        <button class="topic soon"><span>В транспорте</span><small>скоро</small></button>
+
+        <button class="dialect" id="btnDialect">
+          <div class="t">Κυπριακά · кипрский</div>
+          <div class="s">Так говорят в Лимассоле, а не в учебнике</div>
+        </button>
+      </div>
+
+      <button class="cta" id="btnBuild">Собрать урок · 20 мин</button>
+    </section>
+
+    <!-- 5. ПОВТОР -->
+    <section class="screen" id="s-review">
+      <div class="lbl">Отмечено касанием</div>
+      <div class="h2">Вернётся в <em>следующем</em> уроке</div>
+      <div class="scroll" id="markedList"></div>
+      <button class="export" id="btnExport">Выгрузить для генератора</button>
+    </section>
+
+    <!-- 6. Я -->
+    <section class="screen" id="s-me">
+      <div class="lbl">Я</div>
+      <div class="h2">Как это <em>устроено</em></div>
+      <div class="scroll" style="margin-top:12px">
+        <div class="card" style="margin-bottom:9px">
+          <div class="lbl">Цикл</div>
+          <div style="font-size:12.5px;font-weight:600;margin-top:4px">
+            Греческое слово → пауза, вспоминаешь → перевод → слово ещё раз →
+            фраза → пауза → перевод фразы.
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:9px">
+          <div class="lbl">Без повторов</div>
+          <div style="font-size:12.5px;font-weight:600;margin-top:4px">
+            В уроке каждое слово звучит один раз. Вернуть слово может только
+            двойное касание наушника.
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:9px">
+          <div class="lbl">Никаких стриков</div>
+          <div style="font-size:12.5px;font-weight:600;margin-top:4px">
+            Ни сердечек, ни очков, ни вины за пропуск. Это плейлист, а не тренажёр.
+          </div>
+        </div>
+        <div class="lbl" style="margin-top:14px">Голос</div>
+        <div class="row" style="margin-top:7px" id="voiceRow"></div>
+
+        <div class="lbl" style="margin-top:14px">Офлайн</div>
+        <div id="offlineRow" style="margin-top:7px"></div>
+
+        <div class="lbl" style="margin-top:14px">Наушники</div>
+        <div class="card" style="margin-top:7px">
+          <div style="font-size:11px;font-weight:800;color:var(--mute)">ДВОЙНОЕ КАСАНИЕ</div>
+          <div class="row" style="margin-top:6px" id="setDouble">
+            <button class="chip" data-act="not">не понял</button>
+            <button class="chip" data-act="fwd">+15 сек</button>
+            <button class="chip" data-act="rep">повтор слова</button>
+          </div>
+          <div style="font-size:11px;font-weight:800;color:var(--mute);margin-top:11px">ТРОЙНОЕ КАСАНИЕ</div>
+          <div class="row" style="margin-top:6px" id="setTriple">
+            <button class="chip" data-act="rep">повтор слова</button>
+            <button class="chip" data-act="back">−15 сек</button>
+            <button class="chip" data-act="not">не понял</button>
+          </div>
+          <div class="row" style="margin-top:11px">
+            <button class="chip" id="setTone">звук подтверждения</button>
+          </div>
+          <div style="font-size:11px;color:var(--mute);font-weight:600;margin-top:9px">
+            Одиночное касание всегда пауза - это рефлекс, его не переназначить.
+          </div>
+        </div>
+
+        <button class="topic" id="btnLock" style="margin-top:12px"><span>Показать локскрин</span><small>экран 3</small></button>
+      </div>
+    </section>
+
+    <!-- 3. ЛОКСКРИН -->
+    <section class="screen" id="s-lock">
+      <div class="lock">
+        <div class="clock" id="lockClock">8:47</div>
+        <div class="date" id="lockDate">пятница, 14 августа</div>
+        <div class="media">
+          <div class="app">Handsfree · греческий</div>
+          <div class="w gr" id="lockWord">ψωμί</div>
+          <div class="syl" id="lockSyl" style="color:var(--sun);font-size:13px;margin-top:4px">псо-МИ</div>
+          <div class="tr" id="lockTr">хлеб</div>
+          <div class="dots" id="lockDots"></div>
+          <div class="mc">
+            <button data-act="back">−15</button>
+            <button data-act="play" id="lockPlay">❚❚</button>
+            <button data-act="fwd">+15</button>
+            <button data-act="not" class="rep">↻</button>
+          </div>
+        </div>
+      </div>
+      <button class="backlink" id="lockBack">ЗАКРЫТЬ</button>
+    </section>
+
+    <div class="nav" id="nav">
+      <button data-go="s-home" class="on">Слушать</button>
+      <button data-go="s-topics">Темы</button>
+      <button data-go="s-review">Повтор <span id="navCount"></span></button>
+      <button data-go="s-me">Я</button>
+    </div>
+  </div>
+</div>
+
+<div class="remote">
+  <h3>ПУЛЬТ НАУШНИКА</h3>
+  <p>В приложении это жесты на наушнике. Здесь - кнопки, если слушаешь без наушников.</p>
+  <div class="keys">
+    <button data-act="play"><span>Одиночное касание - пауза / продолжить</span><b>ПРОБЕЛ</b></button>
+    <button data-act="double"><span>Двойное - <i id="remoteDouble">«не понял», слово в повтор</i></span><b>D</b></button>
+    <button data-act="triple"><span>Тройное - <i id="remoteTriple">повторить слово с начала</i></span><b>R</b></button>
+  </div>
+  <div class="warn" id="audioWarn" style="display:none"></div>
+</div>
+
+<audio id="audio" preload="metadata" playsinline webkit-playsinline></audio>
+<script src="data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var L = window.LESSONS || [];
+  var audio = document.getElementById('audio');
+  var el = function(id){ return document.getElementById(id); };
+
+  if(!L.length){
+    el('audioWarn').style.display='block';
+    el('audioWarn').textContent='data.js пуст. Собери уроки: python3 tools/build_audio.py --course content/course.json, затем python3 tools/build_app_data.py';
+    return;
+  }
+
+  // ------- состояние -------
+  // Сессия - самостоятельный файл произвольной длины. Ни дней, ни фиксированных
+  // длин: список - это просто собранные сессии.
+  var lesson = L[0];
+  var marked = [];          // слова, отмеченные двойным касанием
+  var heard = {};           // сколько слов уже прозвучало целиком
+  var listened = 0;         // секунд в этой сессии
+  var cur = null;           // текущее слово
+  var ord = {};             // номер слова среди новых (без финального прохода)
+  var newTotal = 0;
+
+  function indexWords(){
+    ord = {}; newTotal = 0;
+    lesson.words.forEach(function(w){
+      if(w.kind==='new'){ newTotal++; ord[w.i] = newTotal; }
+    });
+  }
+
+  // Такты цикла -> пять клеток метра, как в прототипе.
+  var BEAT_OF = {gr:0, auto_pause:0, ru:1, silence:null, forms:2, phrase:3, phrase_ru:4,
+                 phrase_fast:3, tone:null};
+  var LABEL = {gr:'Греческий', auto_pause:'Вспомни', ru:'Перевод', forms:'Формы',
+               phrase:'В фразе', phrase_ru:'Перевод фразы', phrase_fast:'Нормальная скорость',
+               silence:'', tone:''};
+
+  // ------- офлайн: урок в памяти телефона -------
+  // Аудио держим в Cache Storage и играем через blob-ссылку. Через сервис-воркер
+  // его отдавать нельзя: iOS требует от медиа частичных ответов (Range), воркер
+  // отдаёт цельный - перемотка ломается. Blob перематывается сам.
+  var AUDIO_CACHE = 'handsfree-audio-v1';
+  var blobUrls = {};        // адрес файла -> blob-ссылка, чтобы не плодить их
+
+  function offlineOk(){
+    return typeof caches !== 'undefined' && location.protocol !== 'file:';
+  }
+
+  function cached(url){
+    if(!offlineOk()) return Promise.resolve(null);
+    return caches.open(AUDIO_CACHE)
+      .then(function(c){ return c.match(url); })
+      .catch(function(){ return null; });
+  }
+
+  var playingUrl = '';      // какой урок в плеере - по адресу файла, а не по виду ссылки
+
+  // Перевести воспроизведение на скачанный файл, не сбив позицию. Нужно и при
+  // открытии урока, и сразу после скачивания: иначе скачанный сейчас урок
+  // продолжал бы тянуться из сети до перезахода.
+  function adopt(url){
+    return cached(url).then(function(res){
+      if(!res) return false;
+      return res.blob().then(function(b){
+        if(!blobUrls[url]) blobUrls[url] = URL.createObjectURL(b);
+        if(playingUrl !== url) return true;
+        var at = audio.currentTime, wasPlaying = !audio.paused;
+        audio.src = blobUrls[url];
+        audio.addEventListener('loadedmetadata', function once(){
+          audio.removeEventListener('loadedmetadata', once);
+          if(at > 0) audio.currentTime = at;
+          if(wasPlaying) audio.play();
+        });
+        return true;
+      });
+    }).catch(function(){ return false; });
+  }
+
+  // Единая точка подстановки источника: скачанное играем из памяти, остальное - из сети.
+  function setSource(url){
+    playingUrl = url;
+    audio.src = blobUrls[url] || url;
+    if(!blobUrls[url]) adopt(url);
+  }
+
+  function downloadLesson(l, onProgress){
+    return fetch(l.audio).then(function(res){
+      if(!res.ok) throw new Error('сервер ответил ' + res.status);
+      var total = +(res.headers.get('Content-Length') || 0);
+      if(!res.body || !total) return res.blob();      // старый браузер - без процентов
+      var reader = res.body.getReader(), chunks = [], got = 0;
+      return (function pump(){
+        return reader.read().then(function(r){
+          if(r.done) return new Blob(chunks, {type: 'audio/mpeg'});
+          chunks.push(r.value); got += r.value.length;
+          onProgress(got / total);
+          return pump();
+        });
+      })();
+    }).then(function(blob){
+      return caches.open(AUDIO_CACHE).then(function(c){
+        return c.put(l.audio, new Response(blob, {headers: {'Content-Type': 'audio/mpeg'}}));
+      }).then(function(){ return blob.size; });
+    });
+  }
+
+  function removeLesson(l){
+    return caches.open(AUDIO_CACHE).then(function(c){ return c.delete(l.audio); })
+      .then(function(){
+        if(blobUrls[l.audio]){
+          URL.revokeObjectURL(blobUrls[l.audio]);
+          delete blobUrls[l.audio];
+        }
+      });
+  }
+
+  var MB = function(bytes){ return (bytes / 1048576).toFixed(0) + ' МБ'; };
+
+  function renderOffline(){
+    var box = el('offlineRow');
+    if(!box) return;
+    if(!offlineOk()){
+      box.innerHTML = '<div style="font-size:11.5px;color:var(--mute);font-weight:600">' +
+        'Скачивание работает, когда приложение открыто по адресу сайта, ' +
+        'а не файлом с диска.</div>';
+      return;
+    }
+    box.innerHTML = '';
+    L.forEach(function(l){
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.style.marginBottom = '7px';
+
+      var name = document.createElement('div');
+      name.style.cssText = 'font-size:12.5px;font-weight:700';
+      name.textContent = (l.title || l.id) + ' · ' + (VOICE_TITLES[voiceId(l.id)] || '');
+      card.appendChild(name);
+
+      var state = document.createElement('div');
+      state.style.cssText = 'font-size:11px;font-weight:700;color:var(--mute);margin-top:3px';
+      card.appendChild(state);
+
+      var btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.style.marginTop = '6px';
+      card.appendChild(btn);
+
+      function asSaved(size){
+        state.textContent = size ? 'в памяти телефона, ' + MB(size) : 'в памяти телефона';
+        btn.textContent = 'Удалить';
+        btn.onclick = function(){
+          btn.disabled = true;
+          removeLesson(l).then(function(){ btn.disabled = false; asMissing(); });
+        };
+      }
+      function asMissing(){
+        state.textContent = 'играет из сети';
+        btn.textContent = 'Скачать';
+        btn.onclick = function(){
+          btn.disabled = true;
+          btn.textContent = 'Качаю…';
+          state.textContent = '0%';
+          downloadLesson(l, function(p){ state.textContent = Math.round(p * 100) + '%'; })
+            .then(function(size){
+              btn.disabled = false;
+              asSaved(size);
+              adopt(l.audio);        // если этот урок сейчас играет - переводим на память
+            })
+            .catch(function(err){
+              btn.disabled = false;
+              state.textContent = 'не вышло: ' + err.message;
+              btn.textContent = 'Ещё раз';
+            });
+        };
+      }
+
+      cached(l.audio).then(function(res){
+        if(!res) return asMissing();
+        return res.blob().then(function(b){ asSaved(b.size); });
+      }).catch(function(){ asMissing(); });
+
+      box.appendChild(card);
+    });
+  }
+
+  // ------- экраны -------
+  function go(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.toggle('on', s.id===id); });
+    document.querySelectorAll('#nav button').forEach(function(b){
+      b.classList.toggle('on', b.dataset.go===id);
+    });
+    el('phone').classList.toggle('dark', id==='s-lock');
+    el('nav').style.display = id==='s-lock' ? 'none' : '';
+    if(id==='s-review') renderMarked();
+  }
+  document.querySelectorAll('#nav button').forEach(function(b){
+    b.onclick = function(){ go(b.dataset.go); };
+  });
+  el('btnLock').onclick = function(){ go('s-lock'); };
+  el('lockBack').onclick = function(){ go('s-player'); };
+
+  // ------- выбор длины -------
+  // Голос - это отдельный файл той же сессии с суффиксом в имени.
+  // Переключение сохраняет позицию: сменил озвучку - продолжаешь с того же места.
+  var VOICE_TITLES = {rapunzelina: 'Рапунцелина', joy: 'Джой', system: 'Системный'};
+  var baseId = function(id){
+    var m = String(id).match(/^(.*?)-(rapunzelina|joy|system)$/);
+    return m ? m[1] : String(id);
+  };
+  var voiceId = function(id){
+    var m = String(id).match(/-(rapunzelina|joy|system)$/);
+    return m ? m[1] : '';
+  };
+
+  function renderVoices(){
+    var row = el('voiceRow');
+    if(!row) return;
+    var mine = L.filter(function(l){ return baseId(l.id)===baseId(lesson.id); });
+    var voices = mine.map(function(l){ return voiceId(l.id); }).filter(Boolean);
+    row.innerHTML = '';
+    if(voices.length < 2){
+      row.innerHTML = '<div style="font-size:11.5px;color:var(--mute);font-weight:600">' +
+        'Собран один голос. Другой появится, если собрать сессию с --both-voices.</div>';
+      return;
+    }
+    voices.forEach(function(v){
+      var b = document.createElement('button');
+      b.className = 'chip' + (v===voiceId(lesson.id) ? ' on' : '');
+      b.textContent = VOICE_TITLES[v] || v;
+      b.onclick = function(){
+        var next = mine.find(function(l){ return voiceId(l.id)===v; });
+        if(!next || next.id===lesson.id) return;
+        var at = audio.currentTime, wasPlaying = !audio.paused;
+        // Держимся за СЛОВО, а не за миллисекунду. Список слов у голосов один
+        // и тот же, но говорят они с разной скоростью, поэтому длина сессий
+        // разная: та же секунда у другого голоса - середина чужого слова.
+        var ms = at*1000, here = null, into = null;
+        for(var i=0;i<lesson.words.length;i++){
+          if(ms>=lesson.words[i].s && ms<lesson.words[i].e){ here = lesson.words[i]; break; }
+        }
+        if(here){
+          for(var j=0;j<next.words.length;j++){
+            var w = next.words[j];
+            if(w.id===here.id && w.kind===here.kind && (w.i===here.i || !into)){
+              into = w;
+              if(w.i===here.i) break;
+            }
+          }
+        }
+        lesson = next; setSource(lesson.audio);
+        audio.addEventListener('loadedmetadata', function once(){
+          audio.removeEventListener('loadedmetadata', once);
+          // +10 мс, чтобы не встать ровно на границу предыдущего слова.
+          audio.currentTime = into ? into.s/1000 + 0.01
+                                   : Math.min(at, audio.duration || at);
+          if(wasPlaying) play();
+        });
+        cur = null; indexWords(); renderVoices(); renderTiers(); renderHome();
+      };
+      row.appendChild(b);
+    });
+  }
+
+  function renderTiers(){
+    // Сессии - самостоятельные файлы произвольной длины, а не варианты одного
+    // урока. Поэтому список один: сессия и сколько в ней минут.
+    var row = el('tierRow');
+    row.innerHTML = '';
+    var seen = {};
+    L.filter(function(l){
+      var k = baseId(l.id);
+      if(seen[k]) return false;
+      seen[k] = 1; return true;
+    }).forEach(function(l){
+      var b = document.createElement('button');
+      b.className = 'chip' + (baseId(l.id)===baseId(lesson.id) ? ' on' : '');
+      var mins = Math.round((l.duration||0)/60000);
+      b.textContent = (l.title || baseId(l.id)) + ' · ' + mins + ' мин';
+      b.onclick = function(){ pickLesson(l); };
+      row.appendChild(b);
+    });
+  }
+  function pickLesson(next){
+    if(!next || next.id===lesson.id) return;
+    var wasPlaying = !audio.paused;
+    lesson = next;
+    setSource(lesson.audio);
+    audio.currentTime = 0;
+    cur = null; indexWords();
+    renderTiers(); renderHome();
+    if(wasPlaying) audio.play();
+  }
+
+  function fmt(sec){
+    sec = Math.max(0, Math.floor(sec));
+    return Math.floor(sec/60) + ':' + String(sec%60).padStart(2,'0');
+  }
+
+  function renderHome(){
+    var words = newTotal;
+    el('contLen').textContent = 'Продолжить · ' + Math.round((lesson.duration||0)/60000) + ' мин';
+    el('contPos').textContent = Object.keys(heard).length + ' / ' + words;
+    el('contTitle').textContent = lesson.theme === 'В магазине' ? 'Αγορά' : 'Βάση';
+    el('contSub').textContent = (lesson.theme||'База') + ' · ' +
+      (lesson.title ? lesson.title.split('.')[0].toLowerCase() : 'день 1');
+    el('contBar').style.width = (audio.duration ? audio.currentTime/audio.duration*100 : 0) + '%';
+    el('statWords').textContent = Object.keys(heard).length;
+    el('statTime').textContent = Math.floor(listened/60) + 'м';
+    el('plTheme').textContent = (lesson.theme||'БАЗА').toUpperCase() + ' · ' + Math.round((lesson.duration||0)/60000) + ' МИН';
+  }
+
+  el('continueCard').onclick = function(){ go('s-player'); play(); };
+  el('btnBuild').onclick = function(){ go('s-player'); play(); };
+  el('btnDialect').onclick = function(){
+    alert('Кипрский диалект: ни один синтезатор его не умеет.\nЭто живая запись носителя в Лимассоле - заложено в схему контента (поле audio), но ещё не записано.');
+  };
+
+  // ------- воспроизведение -------
+  function play(){
+    audio.play().catch(function(e){
+      el('audioWarn').style.display='block';
+      el('audioWarn').textContent='Браузер не отдал звук: ' + e.message +
+        '. Открывай файл с диска (greek-app/app/index.html) - тогда ../build/*.mp3 подхватятся.';
+    });
+  }
+  function toggle(){ audio.paused ? play() : audio.pause(); }
+
+  var POS_KEY = 'akou.pos';
+  function savePos(){
+    try{
+      localStorage.setItem(POS_KEY, JSON.stringify({id: lesson.id, t: audio.currentTime}));
+    }catch(e){}
+  }
+  function restorePos(){
+    try{
+      var p = JSON.parse(localStorage.getItem(POS_KEY) || 'null');
+      if(p && p.id === lesson.id && p.t > 5) audio.currentTime = p.t;
+    }catch(e){}
+  }
+  setInterval(function(){ if(!audio.paused) savePos(); }, 5000);
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) savePos(); });
+
+  audio.onplay = function(){ el('btnPlay').textContent='❚❚'; el('lockPlay').textContent='❚❚'; };
+  audio.onpause = function(){ el('btnPlay').textContent='▶'; el('lockPlay').textContent='▶'; savePos(); };
+  audio.onloadedmetadata = function(){ restorePos(); updateMediaMeta(); };
+  audio.onerror = function(){
+    el('audioWarn').style.display='block';
+    el('audioWarn').textContent='Не найден ' + lesson.audio +
+      '. Проверь, что рядом лежит папка build с собранными MP3.';
+  };
+
+  el('btnPlay').onclick = toggle;
+  el('btnBack').onclick = function(){ audio.currentTime = Math.max(0, audio.currentTime-15); };
+  el('btnRep').onclick = repeatWord;
+  el('btnNot').onclick = notUnderstood;
+  el('seek').onclick = function(e){
+    var r = e.currentTarget.getBoundingClientRect();
+    if(audio.duration) audio.currentTime = (e.clientX-r.left)/r.width*audio.duration;
+  };
+  document.querySelectorAll('.mc button').forEach(function(b){
+    b.onclick = function(){
+      var a = b.dataset.act;
+      if(a==='play') toggle();
+      if(a==='back') audio.currentTime = Math.max(0, audio.currentTime-15);
+      if(a==='fwd') audio.currentTime = Math.min(audio.duration||0, audio.currentTime+15);
+      if(a==='not') notUnderstood();
+    };
+  });
+
+  // ------- настройка жестов -------
+  // Раскладку можно менять: у людей разные привычки, а промотка на двойном
+  // касании - это то, к чему приучили все плееры.
+  var ACTIONS = {
+    not: notUnderstood,
+    rep: repeatWord,
+    fwd: function(){ audio.currentTime = Math.min(audio.duration||0, audio.currentTime+15); },
+    back: function(){ audio.currentTime = Math.max(0, audio.currentTime-15); }
+  };
+  var taps = {double:'not', triple:'rep', tone:true};
+  try{
+    var saved = JSON.parse(localStorage.getItem('akou.taps') || 'null');
+    if(saved) taps = Object.assign(taps, saved);
+  }catch(e){}
+
+  function renderTaps(){
+    [['setDouble','double'], ['setTriple','triple']].forEach(function(pair){
+      document.querySelectorAll('#'+pair[0]+' .chip').forEach(function(b){
+        b.classList.toggle('on', b.dataset.act===taps[pair[1]]);
+        b.onclick = function(){
+          taps[pair[1]] = b.dataset.act;
+          saveTaps(); renderTaps();
+        };
+      });
+    });
+    el('setTone').classList.toggle('on', !!taps.tone);
+    el('setTone').onclick = function(){ taps.tone = !taps.tone; saveTaps(); renderTaps(); };
+    el('remoteDouble').textContent = LABELS[taps.double];
+    el('remoteTriple').textContent = LABELS[taps.triple];
+  }
+  var LABELS = {not:'«не понял», слово в повтор', rep:'повторить слово с начала',
+                fwd:'промотать +15 секунд', back:'промотать −15 секунд'};
+  function saveTaps(){
+    try{ localStorage.setItem('akou.taps', JSON.stringify(taps)); }catch(e){}
+  }
+  function fire(which){ (ACTIONS[taps[which]] || function(){})(); }
+
+  // ------- жесты наушника -------
+  // Двойное касание приходит как nexttrack, тройное как previoustrack (TAPS.md).
+  // Перехватываем и вешаем свои действия: промотки на них нет.
+  function updateMediaMeta(){
+    if(!('mediaSession' in navigator) || !window.MediaMetadata) return;
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: cur ? (cur.gr + '  ·  ' + (cur.ru||'')) : (lesson.title || 'Handsfree'),
+        artist: cur && cur.syl ? cur.syl : 'Handsfree - греческий на слух',
+        album: (lesson.theme || '') + (lesson.title ? ' · ' + lesson.title : '')
+      });
+    }catch(e){}
+  }
+
+  if('mediaSession' in navigator){
+    try{
+      navigator.mediaSession.setActionHandler('play', play);
+      navigator.mediaSession.setActionHandler('pause', function(){ audio.pause(); });
+      navigator.mediaSession.setActionHandler('nexttrack', function(){ fire('double'); });
+      navigator.mediaSession.setActionHandler('previoustrack', function(){ fire('triple'); });
+    }catch(e){}
+  }
+  document.querySelectorAll('.remote .keys button').forEach(function(b){
+    b.onclick = function(){
+      var a = b.dataset.act;
+      if(a==='play') toggle();
+      if(a==='double') fire('double');
+      if(a==='triple') fire('triple');
+    };
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.code==='Space'){ e.preventDefault(); toggle(); }
+    if(e.key==='d'||e.key==='D'||e.key==='в'||e.key==='В') fire('double');
+    if(e.key==='r'||e.key==='R'||e.key==='к'||e.key==='К') fire('triple');
+  });
+
+  function repeatWord(){
+    if(cur) audio.currentTime = cur.s/1000 + 0.01;
+  }
+
+  // Подтверждение касания: экран выключен, руки заняты - нужен звук.
+  // Тон генерируется в рантайме, а не запечён в файл.
+  var actx = null;
+  function blip(freq){
+    try{
+      actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = freq; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0, actx.currentTime);
+      g.gain.linearRampToValueAtTime(0.14, actx.currentTime+0.015);
+      g.gain.linearRampToValueAtTime(0, actx.currentTime+0.13);
+      o.start(); o.stop(actx.currentTime+0.14);
+    }catch(e){}
+  }
+
+  function notUnderstood(){
+    if(!cur) return;
+    if(!marked.some(function(m){ return m.id===cur.id; })){
+      marked.push({id:cur.id, gr:cur.gr, ru:cur.ru});
+    }
+    if(taps.tone) blip(520);
+    var b = el('btnNot');
+    b.classList.add('hit');
+    b.textContent = 'Запомнил: ' + cur.gr;
+    setTimeout(function(){
+      b.classList.remove('hit');
+      b.textContent = 'Не понял · двойное касание';
+    }, 1100);
+    el('navCount').textContent = '· ' + marked.length;
+  }
+
+  function renderMarked(){
+    var box = el('markedList');
+    if(!marked.length){
+      box.innerHTML = '<div class="empty">Пусто. Жми «не понял» на слове во время урока - ' +
+        'здесь соберётся список, который генератор поставит разогревом в начало следующего урока:' +
+        '<div class="code">python3 tools/build_audio.py --course content/course.json --marked marked.json</div></div>';
+      el('btnExport').style.display='none';
+      return;
+    }
+    el('btnExport').style.display='';
+    box.innerHTML = '';
+    marked.forEach(function(m, i){
+      var d = document.createElement('div');
+      d.className = 'marked';
+      d.innerHTML = '<div><div class="w">'+m.gr+'</div><div class="t">'+(m.ru||'')+'</div></div>';
+      var x = document.createElement('button');
+      x.textContent = '×';
+      x.onclick = function(){ marked.splice(i,1); renderMarked(); el('navCount').textContent = marked.length ? '· '+marked.length : ''; };
+      d.appendChild(x);
+      box.appendChild(d);
+    });
+  }
+  el('btnExport').onclick = function(){
+    var json = JSON.stringify({ids: marked.map(function(m){ return m.id; })}, null, 2);
+    var box = el('markedList');
+    var pre = document.createElement('div');
+    pre.className = 'code';
+    pre.textContent = 'marked.json:\n' + json;
+    box.appendChild(pre);
+    pre.scrollIntoView({block:'nearest'});
+  };
+
+  // ------- синхронизация с аудио -------
+  var lastT = 0;
+  audio.ontimeupdate = function(){
+    var ms = audio.currentTime*1000;
+    if(audio.currentTime>lastT){ listened += audio.currentTime-lastT; }
+    lastT = audio.currentTime;
+
+    var w = null;
+    for(var i=0;i<lesson.words.length;i++){
+      if(ms>=lesson.words[i].s && ms<lesson.words[i].e){ w = lesson.words[i]; break; }
+    }
+    if(w && (!cur || cur.i!==w.i)){
+      cur = w;
+      if(w.kind==='new') heard[w.id] = true;
+      // Считаем только новые слова: финальный проход тоже элементы манифеста,
+      // но для человека это не «слово номер N».
+      el('plPos').textContent = (w.kind==='new' ? ord[w.i] : Object.keys(heard).length)
+                              + ' / ' + newTotal;
+      updateMediaMeta();
+      renderHome();
+    }
+    if(!w){ paintIdle(); }
+    else { paintStep(w, ms); }
+
+    el('seekBar').style.width = (audio.duration ? audio.currentTime/audio.duration*100 : 0)+'%';
+    el('tNow').textContent = fmt(audio.currentTime);
+    el('tLeft').textContent = '-' + fmt((audio.duration||0)-audio.currentTime);
+    el('contBar').style.width = el('seekBar').style.width;
+  };
+
+  function paintIdle(){
+    el('blabel').textContent = 'Пауза между блоками';
+    el('big').textContent = '·';
+    el('big').className = '';
+    el('bsyl').textContent = '';
+    el('bhint').textContent = '';
+    document.querySelectorAll('#meter .beat').forEach(function(b){ b.className='beat'; });
+  }
+
+  function paintStep(w, ms){
+    var step = null, idx = -1;
+    for(var i=0;i<w.steps.length;i++){
+      if(ms>=w.steps[i].s && ms<w.steps[i].e){ step = w.steps[i]; idx = i; break; }
+    }
+    if(!step) return;
+
+    var role = step.k;
+    var text = w.gr, cls = 'gr', hint = '';
+
+    if(role==='ru'){ text = w.ru; cls = 'ru'; }
+    else if(role==='forms'){ text = w.gr; cls = 'gr'; hint = 'формы, в которых слово звучит'; }
+    else if(role==='phrase' || role==='phrase_fast'){ text = w.phrase || w.gr; cls = 'gr small'; }
+    else if(role==='phrase_ru'){ text = w.phrase_ru || w.ru; cls = 'ru small'; }
+    else if(role==='auto_pause'){
+      // Пауза на припоминание - главный такт метода: показываем то, что надо вспомнить.
+      var prev = idx>0 ? w.steps[idx-1].k : 'gr';
+      if(prev==='phrase'){ text = w.phrase; cls = 'gr small pausing'; hint = 'вспомни, что это значит'; }
+      else { text = w.gr; cls = 'gr pausing'; hint = 'вспомни перевод'; }
+    }
+    else if(role==='silence'){ text = w.gr; cls = 'gr'; }
+
+    el('big').textContent = text || '·';
+    el('big').className = cls;
+    // Транскрипция по слогам: для фразы своя, ударный слог заглавными.
+    var onPhraseText = role==='phrase' || role==='phrase_fast' ||
+                       (role==='auto_pause' && idx>0 && w.steps[idx-1].k==='phrase');
+    el('bsyl').textContent = (role==='ru' || role==='phrase_ru') ? ''
+                           : (onPhraseText ? (w.sylp || '') : (w.syl || ''));
+    el('blabel').textContent = LABEL[role]!==undefined ? LABEL[role] : role;
+    el('bhint').textContent = hint;
+
+    // Метр: второе появление gr - третья клетка, как в прототипе.
+    var beat = BEAT_OF[role];
+    if(role==='gr'){
+      var seen = 0;
+      for(var j=0;j<idx;j++){ if(w.steps[j].k==='gr') seen++; }
+      beat = seen>0 ? 2 : 0;
+    }
+    if(role==='auto_pause' || role==='silence'){
+      var before = 0;
+      for(var k2=0;k2<idx;k2++){ if(w.steps[k2].k==='gr') before++; }
+      beat = before>1 ? 2 : 0;
+      if(idx>0 && (w.steps[idx-1].k==='phrase')) beat = 3;
+    }
+    document.querySelectorAll('#meter .beat').forEach(function(b, n){
+      b.className = 'beat' + (n===beat ? ' on' : (beat!==null && n<beat ? ' done' : ''));
+    });
+
+    // На локскрине всегда греческое сверху и его перевод снизу - и они должны быть
+    // про одно и то же: на такте фразы показываем фразу и перевод фразы.
+    var onPhrase = role==='phrase' || role==='phrase_fast' || role==='phrase_ru' ||
+                   (role==='auto_pause' && idx>0 && w.steps[idx-1].k==='phrase');
+    el('lockWord').textContent = (onPhrase ? w.phrase : w.gr) || w.gr;
+    el('lockTr').textContent = (onPhrase ? w.phrase_ru : w.ru) || '';
+    el('lockSyl').textContent = (onPhrase ? (w.sylp || '') : (w.syl || ''));
+    var dots = el('lockDots');
+    if(dots.children.length!==5){
+      dots.innerHTML = '<i></i><i></i><i></i><i></i><i></i>';
+    }
+    [].forEach.call(dots.children, function(d, n){
+      d.className = n===beat ? 'a' : (n<beat ? 'b' : '');
+    });
+  }
+
+  // ------- часы -------
+  function tick(){
+    var d = new Date();
+    var t = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+    el('clock').textContent = t;
+    el('lockClock').textContent = t;
+    var days = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+    var mon = ['января','февраля','марта','апреля','мая','июня','июля','августа',
+               'сентября','октября','ноября','декабря'];
+    el('lockDate').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + mon[d.getMonth()];
+  }
+  tick(); setInterval(tick, 20000);
+
+  // ------- старт -------
+  setSource(lesson.audio);
+  if('serviceWorker' in navigator && location.protocol !== 'file:'){
+    // Воркер держит в офлайне саму страницу и данные уроков; аудио - отдельно.
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+  indexWords();
+  renderTiers(); renderVoices(); renderHome(); renderTaps(); renderOffline(); paintIdle();
+  el('plPos').textContent = '1 / ' + newTotal;
+  el('tLeft').textContent = '-' + fmt(lesson.duration/1000);
+})();
+</script>
+</body>
+</html>
