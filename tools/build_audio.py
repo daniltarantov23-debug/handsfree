@@ -77,12 +77,59 @@ ROLE_FIELD = {
 }
 SPEECH_ROLES = tuple(ROLE_VOICE)
 
-DEFAULT_VOICES = {
-    "ru": {"name": "Milena", "rate": 190},
-    "gr": {"name": "Melina", "rate": 170},
-    "gr_slow": {"name": "Melina", "rate": 105},
-    "gr_fast": {"name": "Melina", "rate": 205},
+# Голосовые наборы. Piper - локальный нейросетевой синтез (модели в voices/),
+# system - компактные голоса macOS, годятся только на черновик.
+# rate у Piper - это length_scale наоборот: чем меньше rate, тем медленнее речь.
+VOICE_SETS = {
+    "rapunzelina": {
+        "engine": "piper", "title": "Рапунцелина",
+        "gr": {"model": "el_GR-rapunzelina-medium", "rate": 170},
+        "gr_slow": {"model": "el_GR-rapunzelina-medium", "rate": 115},
+        "gr_fast": {"model": "el_GR-rapunzelina-medium", "rate": 195},
+        "ru": {"model": "ru_RU-irina-medium", "rate": 185},
+    },
+    "joy": {
+        "engine": "piper", "title": "Джой",
+        "gr": {"model": "el_GR-joy-medium", "rate": 170},
+        "gr_slow": {"model": "el_GR-joy-medium", "rate": 115},
+        "gr_fast": {"model": "el_GR-joy-medium", "rate": 195},
+        "ru": {"model": "ru_RU-irina-medium", "rate": 185},
+    },
+    "system": {
+        "engine": "say", "title": "Системный",
+        "gr": {"name": "Melina", "rate": 170},
+        "gr_slow": {"name": "Melina", "rate": 105},
+        "gr_fast": {"name": "Melina", "rate": 205},
+        "ru": {"name": "Milena", "rate": 190},
+    },
 }
+DEFAULT_VOICE_SET = "rapunzelina"
+VOICES_DIR = Path(__file__).resolve().parent.parent / "voices"
+_piper_cache = {}
+
+
+def piper_voice(model: str):
+    """Модель Piper грузится один раз - это 63 МБ и пара секунд на загрузку."""
+    if model not in _piper_cache:
+        from piper import PiperVoice
+        path = VOICES_DIR / f"{model}.onnx"
+        if not path.exists():
+            raise SystemExit(f"нет модели голоса {path}. Скачай её или возьми "
+                             f"--voice system")
+        _piper_cache[model] = PiperVoice.load(str(path))
+    return _piper_cache[model]
+
+
+def piper_clip(text: str, model: str, rate: int, out_path: Path) -> None:
+    """
+    Синтез Piper. rate приводим к length_scale: 170 - обычный темп,
+    меньше rate = медленнее речь = больше length_scale.
+    """
+    from piper import SynthesisConfig
+    voice = piper_voice(model)
+    with wave.open(str(out_path), "wb") as w:
+        voice.synthesize_wav(text, w,
+                             syn_config=SynthesisConfig(length_scale=170.0 / max(60, rate)))
 
 PACK_KEYS = {"id", "title", "level", "theme", "intro", "outro", "voices",
              "pattern", "review_pattern", "final_pattern", "items", "review"}
@@ -154,22 +201,32 @@ def duration(samples) -> float:
 # --------------------------------------------------------------------------
 
 def tts_clip(text: str, voice: str, rate: int, cache_dir: Path,
-             fresh: bool = False) -> array.array:
+             fresh: bool = False, engine: str = "say") -> array.array:
     """
     Кэш привязан к имени голоса. Но если голос обновился под тем же именем
     (macOS так умеет: скачанный качественный вариант заменяет компактный),
     имя не меняется и кэш отдаст старые роботные клипы. Для такого случая - fresh.
     """
-    key = hashlib.sha1(f"{voice}|{rate}|{SR}|{text}".encode("utf-8")).hexdigest()[:16]
+    key = hashlib.sha1(f"{engine}|{voice}|{rate}|{SR}|{text}".encode("utf-8")).hexdigest()[:16]
     cached = cache_dir / f"{key}.wav"
     if fresh or not cached.exists():
         cache_dir.mkdir(parents=True, exist_ok=True)
-        aiff = cache_dir / f"{key}.aiff"
-        subprocess.run(["say", "-v", voice, "-r", str(rate), "-o", str(aiff), "--", text],
-                       check=True, capture_output=True)
-        subprocess.run(["afconvert", "-f", "WAVE", "-d", f"LEI16@{SR}", "-c", str(CHANNELS),
-                        str(aiff), str(cached)], check=True, capture_output=True)
-        aiff.unlink(missing_ok=True)
+        if engine == "piper":
+            raw = cache_dir / f"{key}.raw.wav"
+            piper_clip(text, voice, rate, raw)
+            # Piper отдаёт 22050 моно 16 бит - ровно наш формат, но приводим
+            # через afconvert на случай другой модели.
+            subprocess.run(["afconvert", "-f", "WAVE", "-d", f"LEI16@{SR}",
+                            "-c", str(CHANNELS), str(raw), str(cached)],
+                           check=True, capture_output=True)
+            raw.unlink(missing_ok=True)
+        else:
+            aiff = cache_dir / f"{key}.aiff"
+            subprocess.run(["say", "-v", voice, "-r", str(rate), "-o", str(aiff), "--", text],
+                           check=True, capture_output=True)
+            subprocess.run(["afconvert", "-f", "WAVE", "-d", f"LEI16@{SR}", "-c", str(CHANNELS),
+                            str(aiff), str(cached)], check=True, capture_output=True)
+            aiff.unlink(missing_ok=True)
     return trim_silence(read_wav(cached))
 
 
@@ -200,6 +257,26 @@ def installed_voices() -> set:
 # Качество голоса по убыванию. Компактный (без суффикса) - конкатенативный,
 # звучит роботом; Premium и Enhanced - нейросетевые, качество несопоставимо.
 VOICE_TIERS = (" (Premium)", " (Enhanced)", "")
+
+
+def check_system_voices(voices: dict) -> None:
+    """Для движка `say`: проверить, что голоса стоят, и взять лучший вариант."""
+    names = installed_voices()
+    compact = []
+    for role, v in voices.items():
+        wanted = v.get("name")
+        if not wanted:
+            continue
+        if wanted not in names and best_voice(wanted, names) == wanted:
+            raise SystemExit(
+                f"Голос '{wanted}' (роль {role}) не установлен. Доступные: "
+                f"{', '.join(sorted(names))}")
+        v["name"] = best_voice(wanted, names)
+        if "(" not in v["name"]:
+            compact.append(v["name"])
+    if compact:
+        print(f"  ! голоса компактные ({', '.join(sorted(set(compact)))}) - звучат роботом.\n"
+              "    Нейросетевые голоса: --voice rapunzelina или --voice joy")
 
 
 def best_voice(name: str, installed: set) -> str:
@@ -260,23 +337,27 @@ def item_text(item: dict, role: str):
 # --------------------------------------------------------------------------
 
 class Ctx:
-    def __init__(self, voices: dict, cache_dir: Path, fresh: bool = False):
+    def __init__(self, voices: dict, cache_dir: Path, fresh: bool = False,
+                 engine: str = "say"):
         self.voices = voices
         self.cache = cache_dir
         self.fresh = fresh
+        self.engine = engine
+
+    def _speak(self, text: str, role_voice: str) -> array.array:
+        cfg = self.voices[role_voice]
+        name = cfg.get("model") or cfg.get("name")
+        return tts_clip(text, name, cfg["rate"], self.cache, self.fresh, self.engine)
 
     def clip(self, item: dict, role: str) -> array.array:
         audio = item.get("audio")
         recorded = audio.get(role) if isinstance(audio, dict) else None
         if recorded:
             return load_recorded(Path(recorded), self.cache)
-        cfg = self.voices[ROLE_VOICE[role]]
-        return tts_clip(item_text(item, role), cfg["name"], cfg["rate"], self.cache,
-                        self.fresh)
+        return self._speak(item_text(item, role), ROLE_VOICE[role])
 
     def say_ru(self, text: str) -> array.array:
-        cfg = self.voices["ru"]
-        return tts_clip(text, cfg["name"], cfg["rate"], self.cache, self.fresh)
+        return self._speak(text, "ru")
 
 
 def render_cycle(item: dict, steps: list, ctx: Ctx):
@@ -345,7 +426,7 @@ def validate_pack(pack: dict, source: str) -> None:
 def build_tier(pack: dict, source: str, tier: int, stream: list, marked: list,
                out_dir: Path, cache_dir: Path, fmt: str, dry_run: bool,
                fresh: bool = False, target_s: float = 0, review_s: float = 0,
-               label: str = "") -> dict:
+               label: str = "", voice_set: str = DEFAULT_VOICE_SET) -> dict:
     """
     Собирает урок ровно на tier минут из УНИКАЛЬНЫХ слов: сколько влезет, столько
     и берём из потока. Повторов внутри урока нет - они приходят только из слов,
@@ -358,7 +439,9 @@ def build_tier(pack: dict, source: str, tier: int, stream: list, marked: list,
     pack_id = label or f"{pack.get('id') or Path(source).stem}-{tier}"
     target = target_s or tier * 60.0
 
-    voices = {k: dict(v) for k, v in DEFAULT_VOICES.items()}
+    vset = VOICE_SETS[voice_set]
+    engine = vset["engine"]
+    voices = {k: dict(v) for k, v in vset.items() if isinstance(v, dict)}
     for role, override in (pack.get("voices") or {}).items():
         if role not in voices:
             raise SystemExit(f"{source}: неизвестная роль голоса '{role}'")
@@ -379,24 +462,10 @@ def build_tier(pack: dict, source: str, tier: int, stream: list, marked: list,
               + (f", отмечено на повтор {len(marked)}" if marked else ""))
         return {"pack": pack_id, "items": 0, "dry_run": True}
 
-    names = installed_voices()
-    compact = []
-    for role, v in voices.items():
-        if v["name"] not in names and best_voice(v["name"], names) == v["name"]:
-            raise SystemExit(
-                f"Голос '{v['name']}' (роль {role}) не установлен. Доступные: "
-                f"{', '.join(sorted(names))}\nГреческий (Melina): System Settings > "
-                "Accessibility > Spoken Content > System Voice > Manage Voices.")
-        v["name"] = best_voice(v["name"], names)
-        if "(" not in v["name"]:
-            compact.append(v["name"])
-    if compact:
-        print(f"  голоса компактные ({', '.join(sorted(set(compact)))}) - звучат роботом.\n"
-              "    Естественный вариант ставится вручную: System Settings > Accessibility >\n"
-              "    Spoken Content > System Voice > Manage Voices > Melina (Premium), 241 МБ.\n"
-              "    После установки просто пересобери - генератор подхватит его сам.")
+    if engine == "say":
+        check_system_voices(voices)
 
-    ctx = Ctx(voices, cache_dir, fresh)
+    ctx = Ctx(voices, cache_dir, fresh, engine)
     head = []            # интро и разогрев отмеченных слов
     fixed = 0.0          # то, что занимает место независимо от набора новых слов
 
@@ -541,10 +610,10 @@ def build_tier(pack: dict, source: str, tier: int, stream: list, marked: list,
 
 def build_pack(pack: dict, source: str, tiers: list, stream: list, marked: list,
                out_dir: Path, cache_dir: Path, fmt: str, dry_run: bool,
-               fresh: bool = False) -> list:
+               fresh: bool = False, voice_set: str = DEFAULT_VOICE_SET) -> list:
     validate_pack(pack, source)
     return [build_tier(pack, source, t, stream, marked, out_dir, cache_dir, fmt, dry_run,
-                       fresh) for t in tiers]
+                       fresh, voice_set=voice_set) for t in tiers]
 
 
 # --------------------------------------------------------------------------
@@ -708,6 +777,8 @@ def main() -> int:
     ap.add_argument("--cache", default="build/.cache",
                     help="кэш клипов TTS; общий для всех --out")
     ap.add_argument("--format", choices=["mp3", "m4a", "wav"], default="mp3")
+    ap.add_argument("--voice", default=DEFAULT_VOICE_SET, choices=sorted(VOICE_SETS),
+                    help="голосовой набор")
     ap.add_argument("--fresh", action="store_true",
                     help="пересинтезировать всё, игнорируя кэш: нужно после смены голоса, "
                          "если он установился под тем же именем")

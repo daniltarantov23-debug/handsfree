@@ -326,6 +326,9 @@ button{font-family:inherit;cursor:pointer;color:inherit}
             Ни сердечек, ни очков, ни вины за пропуск. Это плейлист, а не тренажёр.
           </div>
         </div>
+        <div class="lbl" style="margin-top:14px">Голос</div>
+        <div class="row" style="margin-top:7px" id="voiceRow"></div>
+
         <div class="lbl" style="margin-top:14px">Наушники</div>
         <div class="card" style="margin-top:7px">
           <div style="font-size:11px;font-weight:800;color:var(--mute)">ДВОЙНОЕ КАСАНИЕ</div>
@@ -451,16 +454,64 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   el('lockBack').onclick = function(){ go('s-player'); };
 
   // ------- выбор длины -------
+  // Голос - это отдельный файл той же сессии с суффиксом в имени.
+  // Переключение сохраняет позицию: сменил озвучку - продолжаешь с того же места.
+  var VOICE_TITLES = {rapunzelina: 'Рапунцелина', joy: 'Джой', system: 'Системный'};
+  var baseId = function(id){
+    var m = String(id).match(/^(.*?)-(rapunzelina|joy|system)$/);
+    return m ? m[1] : String(id);
+  };
+  var voiceId = function(id){
+    var m = String(id).match(/-(rapunzelina|joy|system)$/);
+    return m ? m[1] : '';
+  };
+
+  function renderVoices(){
+    var row = el('voiceRow');
+    if(!row) return;
+    var mine = L.filter(function(l){ return baseId(l.id)===baseId(lesson.id); });
+    var voices = mine.map(function(l){ return voiceId(l.id); }).filter(Boolean);
+    row.innerHTML = '';
+    if(voices.length < 2){
+      row.innerHTML = '<div style="font-size:11.5px;color:var(--mute);font-weight:600">' +
+        'Собран один голос. Другой появится, если собрать сессию с --both-voices.</div>';
+      return;
+    }
+    voices.forEach(function(v){
+      var b = document.createElement('button');
+      b.className = 'chip' + (v===voiceId(lesson.id) ? ' on' : '');
+      b.textContent = VOICE_TITLES[v] || v;
+      b.onclick = function(){
+        var next = mine.find(function(l){ return voiceId(l.id)===v; });
+        if(!next || next.id===lesson.id) return;
+        var at = audio.currentTime, wasPlaying = !audio.paused;
+        lesson = next; audio.src = lesson.audio;
+        audio.addEventListener('loadedmetadata', function once(){
+          audio.removeEventListener('loadedmetadata', once);
+          audio.currentTime = at;            // тот же момент, другой голос
+          if(wasPlaying) play();
+        });
+        cur = null; indexWords(); renderVoices(); renderTiers(); renderHome();
+      };
+      row.appendChild(b);
+    });
+  }
+
   function renderTiers(){
     // Сессии - самостоятельные файлы произвольной длины, а не варианты одного
     // урока. Поэтому список один: сессия и сколько в ней минут.
     var row = el('tierRow');
     row.innerHTML = '';
-    L.forEach(function(l){
+    var seen = {};
+    L.filter(function(l){
+      var k = baseId(l.id);
+      if(seen[k]) return false;
+      seen[k] = 1; return true;
+    }).forEach(function(l){
       var b = document.createElement('button');
-      b.className = 'chip' + (l.id===lesson.id ? ' on' : '');
+      b.className = 'chip' + (baseId(l.id)===baseId(lesson.id) ? ' on' : '');
       var mins = Math.round((l.duration||0)/60000);
-      b.textContent = (l.title || l.id) + ' · ' + mins + ' мин';
+      b.textContent = (l.title || baseId(l.id)) + ' · ' + mins + ' мин';
       b.onclick = function(){ pickLesson(l); };
       row.appendChild(b);
     });
@@ -812,7 +863,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
   // ------- старт -------
   audio.src = lesson.audio;
   indexWords();
-  renderTiers(); renderHome(); renderTaps(); paintIdle();
+  renderTiers(); renderVoices(); renderHome(); renderTaps(); paintIdle();
   el('plPos').textContent = '1 / ' + newTotal;
   el('tLeft').textContent = '-' + fmt(lesson.duration/1000);
 })();

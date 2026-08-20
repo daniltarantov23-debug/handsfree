@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_audio import build_tier, load_marked  # noqa: E402
+from build_audio import build_tier, load_marked, VOICE_SETS, DEFAULT_VOICE_SET  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 PROGRESS = ROOT / "build" / "progress.json"
@@ -95,6 +95,11 @@ def main() -> int:
     ap.add_argument("--cache", default="build/.cache")
     ap.add_argument("--format", choices=["mp3", "m4a", "wav"], default="mp3")
     ap.add_argument("--name", default="", help="имя файла; по умолчанию session-NN")
+    ap.add_argument("--voice", default=DEFAULT_VOICE_SET, choices=sorted(VOICE_SETS),
+                    help="голосовой набор; файл получает суффикс голоса")
+    ap.add_argument("--both-voices", action="store_true",
+                    help="собрать сессию всеми нейросетевыми голосами - чтобы "
+                         "выбирать голос прямо в приложении")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--fresh", action="store_true")
     args = ap.parse_args()
@@ -129,10 +134,13 @@ def main() -> int:
               f"(отмеченных касанием: {len(marked_ids)})")
 
     session_no = progress.get("session", 0) + 1
-    name = args.name or f"session-{session_no:02d}"
+    base_name = args.name or f"session-{session_no:02d}"
+    # Голос попадает в имя файла: приложение по нему и переключает озвучку.
+    voices_to_build = ([v for v in sorted(VOICE_SETS) if VOICE_SETS[v]["engine"] == "piper"]
+                       if args.both_voices else [args.voice])
 
     pack = {
-        "id": name,
+        "id": base_name,
         "title": f"Сессия {session_no}",
         "theme": (fresh_words[0].get("_theme") if fresh_words else "Повтор"),
         "level": "Обиход",
@@ -140,12 +148,19 @@ def main() -> int:
         "review": review_items,
     }
 
-    result = build_tier(pack, str(course_path), int(args.minutes), pack["items"], review_items,
-                        Path(args.out), Path(args.cache), args.format, args.dry_run,
-                        args.fresh, target_s=args.minutes * 60, review_s=review_s,
-                        label=name)
+    results = []
+    for voice in voices_to_build:
+        name = f"{base_name}-{voice}"
+        print(f"\n--- голос: {VOICE_SETS[voice]['title']} ---")
+        results.append(build_tier(pack, str(course_path), int(args.minutes), pack["items"],
+                                  review_items, Path(args.out), Path(args.cache),
+                                  args.format, args.dry_run, args.fresh,
+                                  target_s=args.minutes * 60, review_s=review_s,
+                                  label=name, voice_set=voice))
     if args.dry_run:
         return 0
+    result = results[0]
+    name = f"{base_name}-{voices_to_build[0]}"
 
     # Обновляем прогресс: что прозвучало новым, что поднималось на повтор.
     manifest = json.loads((Path(args.out) / f"{name}.timings.json").read_text(encoding="utf-8"))
